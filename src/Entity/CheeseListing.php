@@ -2,48 +2,61 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Core\Annotation\ApiFilter;
 use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\BooleanFilter;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\RangeFilter;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Core\Serializer\Filter\PropertyFilter;
 use App\Repository\CheeseListingRepository;
 use Carbon\Carbon;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Annotation\SerializedName;
 
 #[ORM\Entity(repositoryClass: CheeseListingRepository::class)]
 #[ApiResource(
     collectionOperations: ['get', 'post'],
     itemOperations: ['get', 'put'],
     shortName: 'cheeses',
+    attributes: [
+        'pagination_items_per_page' => 5
+    ],
     denormalizationContext: ['groups' => ['cheese_listings:write']],
     normalizationContext: ['groups' => ['cheese_listings:read']]
 )]
+#[ApiFilter(BooleanFilter::class, properties: ['isPublished'])]
+#[ApiFilter(SearchFilter::class, properties: ['title' => 'partial'])]
+#[ApiFilter(RangeFilter::class, properties: ['price'])]
+#[ApiFilter(PropertyFilter::class)]
 class CheeseListing
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private $id;
+    private ?int $id;
 
     #[ORM\Column(type: 'string', length: 255)]
     #[Groups(['cheese_listings:read', 'cheese_listings:write'])]
-    private $title;
+    private ?string $title;
 
     #[ORM\Column(type: 'text')]
     #[Groups('cheese_listings:read')]
-    private $description;
+    private ?string $description;
 
-    # The price of the cheese
     #[ORM\Column(type: 'integer')]
     #[Groups(['cheese_listings:read', 'cheese_listings:write'])]
-    private $price;
+    private ?int $price;
 
     #[ORM\Column(type: 'datetime')]
     private $createdAt;
 
     #[ORM\Column(type: 'boolean')]
-    private $isPublished = false;
+    private bool $isPublished = false;
 
-    public function __construct()
+    public function __construct(string $title = null)
     {
+        $this->title = $title;
         $this->createdAt = new \DateTimeImmutable();
     }
 
@@ -57,19 +70,24 @@ class CheeseListing
         return $this->title;
     }
 
-    public function setTitle(string $title): self
-    {
-        $this->title = $title;
-
-        return $this;
-    }
-
     public function getDescription(): ?string
     {
         return $this->description;
     }
 
-    public function setDescription(string $description): self
+    #[Groups('cheese_listings:read')]
+    public function getShortDescription(): ?string
+    {
+        if (strlen($this->description) < 40) {
+            return $this->description;
+        }
+
+        return substr($this->description, 0, 40).'...';
+    }
+
+    #[Groups('cheese_listings:write')]
+    #[SerializedName('description')]
+    public function setTextDescription(string $description): self
     {
         $this->description = nl2br($description);
 
