@@ -13,6 +13,8 @@ use Carbon\Carbon;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\Annotation\SerializedName;
+use Symfony\Component\Validator\Constraints\Length;
+use Symfony\Component\Validator\Constraints\NotBlank;
 
 #[ORM\Entity(repositoryClass: CheeseListingRepository::class)]
 #[ApiResource(
@@ -20,7 +22,8 @@ use Symfony\Component\Serializer\Annotation\SerializedName;
     itemOperations: ['get', 'put'],
     shortName: 'cheeses',
     attributes: [
-        'pagination_items_per_page' => 5
+        'pagination_items_per_page' => 5,
+        'formats' => ['jsonld', 'json', 'html', 'jsonhal', 'csv' => 'text/csv']
     ],
     denormalizationContext: ['groups' => ['cheese_listings:write']],
     normalizationContext: ['groups' => ['cheese_listings:read']]
@@ -38,14 +41,18 @@ class CheeseListing
 
     #[ORM\Column(type: 'string', length: 255)]
     #[Groups(['cheese_listings:read', 'cheese_listings:write'])]
+    #[NotBlank]
+    #[Length(['min' => 2, 'max' => 50, 'maxMessage' => 'Describe your cheese in 55 chars or less'])]
     private ?string $title;
 
     #[ORM\Column(type: 'text')]
     #[Groups('cheese_listings:read')]
+    #[NotBlank]
     private ?string $description;
 
     #[ORM\Column(type: 'integer')]
     #[Groups(['cheese_listings:read', 'cheese_listings:write'])]
+    #[NotBlank]
     private ?int $price;
 
     #[ORM\Column(type: 'datetime')]
