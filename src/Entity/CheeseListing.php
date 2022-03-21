@@ -15,11 +15,15 @@ use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\Annotation\SerializedName;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\Valid;
 
 #[ORM\Entity(repositoryClass: CheeseListingRepository::class)]
 #[ApiResource(
     collectionOperations: ['get', 'post'],
-    itemOperations: ['get', 'put'],
+    itemOperations: [
+        'get',
+        'put'
+    ],
     shortName: 'cheeses',
     attributes: [
         'pagination_items_per_page' => 5,
@@ -40,18 +44,18 @@ class CheeseListing
     private ?int $id;
 
     #[ORM\Column(type: 'string', length: 255)]
-    #[Groups(['cheese_listings:read', 'cheese_listings:write'])]
+    #[Groups(['cheese_listings:read', 'cheese_listings:write', 'user:read'])]
     #[NotBlank]
     #[Length(['min' => 2, 'max' => 50, 'maxMessage' => 'Describe your cheese in 55 chars or less'])]
     private ?string $title;
 
     #[ORM\Column(type: 'text')]
-    #[Groups('cheese_listings:read')]
+    #[Groups(['cheese_listings:read'])]
     #[NotBlank]
     private ?string $description;
 
     #[ORM\Column(type: 'integer')]
-    #[Groups(['cheese_listings:read', 'cheese_listings:write'])]
+    #[Groups(['cheese_listings:read', 'cheese_listings:write', 'user:read'])]
     #[NotBlank]
     private ?int $price;
 
@@ -63,7 +67,9 @@ class CheeseListing
 
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'cheeseListings')]
     #[ORM\JoinColumn(nullable: false)]
-    private $owner;
+    #[Groups(['cheese_listings:read', 'cheese_listings:write'])]
+    #[Valid]
+    private ?User $owner;
 
     public function __construct(string $title = null)
     {
@@ -96,7 +102,7 @@ class CheeseListing
         return substr($this->description, 0, 40).'...';
     }
 
-    #[Groups('cheese_listings:write')]
+    #[Groups(['cheese_listings:write'])]
     #[SerializedName('description')]
     public function setTextDescription(string $description): self
     {
