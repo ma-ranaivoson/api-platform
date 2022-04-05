@@ -33,7 +33,11 @@ use Symfony\Component\Validator\Constraints\Valid;
     normalizationContext: ['groups' => ['cheese_listings:read']]
 )]
 #[ApiFilter(BooleanFilter::class, properties: ['isPublished'])]
-#[ApiFilter(SearchFilter::class, properties: ['title' => 'partial'])]
+#[ApiFilter(SearchFilter::class, properties: [
+    'title' => 'partial',
+    'owner' => 'exact',
+    'owner.username' => 'partial',
+    ])]
 #[ApiFilter(RangeFilter::class, properties: ['price'])]
 #[ApiFilter(PropertyFilter::class)]
 class CheeseListing

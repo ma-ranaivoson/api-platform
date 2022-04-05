@@ -2,7 +2,10 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Core\Annotation\ApiFilter;
 use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Core\Annotation\ApiSubresource;
+use ApiPlatform\Core\Serializer\Filter\PropertyFilter;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -21,6 +24,7 @@ use Symfony\Component\Validator\Constraints\Valid;
     denormalizationContext: ['groups' => ['user:write']],
     normalizationContext: ['groups' => ['user:read']]
 )]
+#[ApiFilter(PropertyFilter::class)]
 #[UniqueEntity(['fields'=>'username'])]
 #[UniqueEntity(['fields'=>'email'])]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
@@ -51,6 +55,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'owner', targetEntity: CheeseListing::class, cascade: ['persist'], orphanRemoval: true)]
     #[Groups(['user:read', 'user:write'])]
     #[Valid]
+    #[ApiSubresource]
     private $cheeseListings;
 
     #[Pure] public function __construct()
