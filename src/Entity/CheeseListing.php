@@ -19,10 +19,11 @@ use Symfony\Component\Validator\Constraints\Valid;
 
 #[ORM\Entity(repositoryClass: CheeseListingRepository::class)]
 #[ApiResource(
-    collectionOperations: ['get', 'post'],
+    collectionOperations: ['get', 'post' => [ 'access_control' => "is_granted('ROLE_USER')" ]],
     itemOperations: [
         'get',
-        'put'
+        'put',
+        'delete' => [ 'access_control' => "is_granted('ROLE_ADMIN')" ]
     ],
     shortName: 'cheeses',
     attributes: [
