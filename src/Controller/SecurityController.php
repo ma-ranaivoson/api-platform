@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use ApiPlatform\Core\Api\IriConverterInterface;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -24,14 +25,17 @@ class SecurityController extends AbstractController
         ]);
     }
 
+    /**
+     * @throws Exception
+     */
     #[Route('/logout', name: 'app_logout', methods: ['GET'])]
     public function logout(IriConverterInterface $iriConverter)
     {
-        throw new \Exception('Should not be reached');
+        throw new Exception('Should not be reached');
     }
 
     #[Route('/me', name: 'app_me', methods: ['GET'])]
-    public function me(SerializerInterface $serializer)
+    public function me(SerializerInterface $serializer): Response
     {
         return $this->json($this->getUser());
     }
